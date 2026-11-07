@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form method="post" class="form">
+    <label>Company Name *
+        <input type="text" name="company_name" maxlength="100" value="{{ company.get('company_name') or '' }}" required>
+    </label>
+    <label>Industry
+        <input type="text" name="industry" maxlength="50" value="{{ company.get('industry') or '' }}">
+    </label>
+    <label>Website
+        <input type="text" name="website" maxlength="200" value="{{ company.get('website') or '' }}">
+    </label>
+    <label>City
+        <input type="text" name="city" maxlength="50" value="{{ company.get('city') or '' }}">
+    </label>
+    <label>State
+        <input type="text" name="state" maxlength="50" value="{{ company.get('state') or '' }}">
+    </label>
+    <label>Notes
+        <textarea name="notes" rows="4">{{ company.get('notes') or '' }}</textarea>
+    </label>
+    <button class="btn" type="submit">Save</button>
+    <a class="btn secondary" href="{{ url_for('companies') }}">Cancel</a>
+</form>
+{% endblock %}
