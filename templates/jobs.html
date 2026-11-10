@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Jobs{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Jobs</h1>
+    <a class="btn" href="{{ url_for('add_job') }}">+ Add Job</a>
+</div>
+<table>
+    <tr><th>Title</th><th>Company</th><th>Type</th><th>Salary</th><th>Required Skills</th><th>Posted</th><th>Actions</th></tr>
+    {% for j in jobs %}
+    <tr>
+        <td>{% if j.job_url %}<a href="{{ j.job_url }}" target="_blank" rel="noopener">{{ j.job_title }}</a>{% else %}{{ j.job_title }}{% endif %}</td>
+        <td>{{ j.company_name }}</td>
+        <td>{{ j.job_type or '' }}</td>
+        <td>{% if j.salary_min and j.salary_max %}${{ '{:,}'.format(j.salary_min) }} - ${{ '{:,}'.format(j.salary_max) }}{% elif j.salary_min %}From ${{ '{:,}'.format(j.salary_min) }}{% elif j.salary_max %}Up to ${{ '{:,}'.format(j.salary_max) }}{% endif %}</td>
+        <td>{% for s in j.skills.split(', ') if s %}<span class="tag">{{ s }}</span>{% endfor %}</td>
+        <td>{{ j.date_posted or '' }}</td>
+        <td class="actions">
+            <a class="btn small" href="{{ url_for('edit_job', job_id=j.job_id) }}">Edit</a>
+            <form method="post" action="{{ url_for('delete_job', job_id=j.job_id) }}"
+                  onsubmit="return confirm('Delete this job? This also deletes its applications.');">
+                <button class="btn small danger" type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7">No jobs yet.</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}

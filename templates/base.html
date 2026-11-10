@@ -10,6 +10,7 @@
         <span class="brand">Job Tracker</span>
         <a href="{{ url_for('dashboard') }}">Dashboard</a>
         <a href="{{ url_for('companies') }}">Companies</a>
+        <a href="{{ url_for('jobs') }}">Jobs</a>
     </nav>
     <main>
         {% with messages = get_flashed_messages(with_categories=true) %}

@@ -23,3 +23,6 @@ th { background: #e8edf3; }
 .flash { padding: 10px 14px; border-radius: 4px; margin-bottom: 14px; }
 .flash.success { background: #d9f2e0; }
 .flash.error { background: #f8d7da; }
+.tag { display: inline-block; background: #e8edf3; color: #1f3a5f; padding: 2px 8px;
+       border-radius: 10px; font-size: 12px; margin: 2px 4px 2px 0; }
+td a { color: #1f3a5f; }

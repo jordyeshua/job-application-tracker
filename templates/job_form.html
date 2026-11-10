@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form method="post" class="form">
+    <label>Company *
+        <select name="company_id" required>
+            <option value="">-- Choose a company --</option>
+            {% for c in companies %}
+            <option value="{{ c.company_id }}" {% if job.get('company_id')|string == c.company_id|string %}selected{% endif %}>{{ c.company_name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>Job Title *
+        <input type="text" name="job_title" maxlength="100" value="{{ job.get('job_title') or '' }}" required>
+    </label>
+    <label>Job Type
+        <select name="job_type">
+            <option value="">-- Select --</option>
+            {% for t in job_types %}
+            <option value="{{ t }}" {% if job.get('job_type') == t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>Minimum Salary
+        <input type="number" name="salary_min" min="0" step="1" value="{{ job.get('salary_min') if job.get('salary_min') is not none else '' }}">
+    </label>
+    <label>Maximum Salary
+        <input type="number" name="salary_max" min="0" step="1" value="{{ job.get('salary_max') if job.get('salary_max') is not none else '' }}">
+    </label>
+    <label>Job URL
+        <input type="text" name="job_url" maxlength="300" value="{{ job.get('job_url') or '' }}">
+    </label>
+    <label>Date Posted
+        <input type="date" name="date_posted" value="{{ job.get('date_posted') or '' }}">
+    </label>
+    <label>Required Skills (comma-separated)
+        <input type="text" name="skills" placeholder="Python, SQL, Flask" value="{{ job.get('skills') or '' }}">
+    </label>
+    <button class="btn" type="submit">Save</button>
+    <a class="btn secondary" href="{{ url_for('jobs') }}">Cancel</a>
+</form>
+{% endblock %}
