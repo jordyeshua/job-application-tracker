@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Application Details{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>{{ application.job_title }} at {{ application.company_name }}</h1>
+    <a class="btn secondary" href="{{ url_for('applications') }}">Back</a>
+</div>
+<div class="card">
+    <p><strong>Status:</strong> <span class="badge status-{{ application.status|lower }}">{{ application.status }}</span></p>
+    <p><strong>Applied:</strong> {{ application.application_date }}</p>
+    <p><strong>Resume version:</strong> {{ application.resume_version or 'Not recorded' }}</p>
+    <p><strong>Cover letter sent:</strong> {{ 'Yes' if application.cover_letter_sent else 'No' }}</p>
+    <h3>Interview Details</h3>
+    {% if interview.interview_rounds != '' or interview.interviewers or interview.feedback or interview.next_steps %}
+    <p><strong>Rounds:</strong> {{ interview.interview_rounds if interview.interview_rounds != '' else 'Not recorded' }}</p>
+    <p><strong>Interviewers:</strong> {{ interview.interviewers or 'Not recorded' }}</p>
+    <p><strong>Feedback:</strong> {{ interview.feedback or 'Not recorded' }}</p>
+    <p><strong>Next steps:</strong> {{ interview.next_steps or 'Not recorded' }}</p>
+    {% else %}
+    <p>No interview details recorded yet.</p>
+    {% endif %}
+    <a class="btn" href="{{ url_for('edit_application', application_id=application.application_id) }}">Edit</a>
+</div>
+{% endblock %}

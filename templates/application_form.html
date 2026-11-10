@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form method="post" class="form">
+    <label>Job *
+        <select name="job_id" required>
+            <option value="">-- Choose a job --</option>
+            {% for j in jobs %}
+            <option value="{{ j.job_id }}" {% if application.get('job_id')|string == j.job_id|string %}selected{% endif %}>{{ j.job_title }} at {{ j.company_name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>Application Date *
+        <input type="date" name="application_date" value="{{ application.get('application_date') or '' }}" required>
+    </label>
+    <label>Status
+        <select name="status">
+            {% for s in statuses %}
+            <option value="{{ s }}" {% if (application.get('status') or 'Applied') == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>Resume Version
+        <input type="text" name="resume_version" maxlength="50" placeholder="v2.1" value="{{ application.get('resume_version') or '' }}">
+    </label>
+    <label class="checkbox">
+        <input type="checkbox" name="cover_letter_sent" {% if application.get('cover_letter_sent') %}checked{% endif %}>
+        Cover letter sent
+    </label>
+
+    <h3>Interview Details (optional)</h3>
+    <label>Interview Rounds
+        <input type="number" name="interview_rounds" min="0" step="1" value="{{ application.get('interview_rounds') if application.get('interview_rounds') is not none else '' }}">
+    </label>
+    <label>Interviewers (comma-separated)
+        <input type="text" name="interviewers" placeholder="Sarah Johnson, Mike Chen" value="{{ application.get('interviewers') or '' }}">
+    </label>
+    <label>Feedback
+        <textarea name="feedback" rows="3">{{ application.get('feedback') or '' }}</textarea>
+    </label>
+    <label>Next Steps
+        <input type="text" name="next_steps" value="{{ application.get('next_steps') or '' }}">
+    </label>
+
+    <button class="btn" type="submit">Save</button>
+    <a class="btn secondary" href="{{ url_for('applications') }}">Cancel</a>
+</form>
+{% endblock %}

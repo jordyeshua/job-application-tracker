@@ -26,3 +26,16 @@ th { background: #e8edf3; }
 .tag { display: inline-block; background: #e8edf3; color: #1f3a5f; padding: 2px 8px;
        border-radius: 10px; font-size: 12px; margin: 2px 4px 2px 0; }
 td a { color: #1f3a5f; }
+.filter { margin: 12px 0; }
+.filter select { padding: 6px; margin-left: 6px; }
+.badge { padding: 3px 10px; border-radius: 10px; font-size: 12px; font-weight: bold; background: #e5e7eb; }
+.status-applied { background: #dbeafe; }
+.status-screening { background: #fef3c7; }
+.status-interview { background: #ede9fe; }
+.status-offer { background: #d9f2e0; }
+.status-rejected { background: #f8d7da; }
+.status-withdrawn { background: #e5e7eb; }
+.card { background: #fff; padding: 20px; border-radius: 6px; max-width: 620px; }
+.form h3 { margin: 20px 0 10px; }
+.form label.checkbox { display: flex; align-items: center; gap: 8px; }
+.form label.checkbox input { width: auto; margin: 0; }

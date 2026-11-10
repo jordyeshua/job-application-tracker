@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Applications{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Applications</h1>
+    <a class="btn" href="{{ url_for('add_application') }}">+ Add Application</a>
+</div>
+<form method="get" class="filter">
+    <label>Filter by status:
+        <select name="status" onchange="this.form.submit()">
+            <option value="">All</option>
+            {% for s in statuses %}
+            <option value="{{ s }}" {% if s == selected_status %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+    </label>
+</form>
+<table>
+    <tr><th>Job</th><th>Company</th><th>Applied</th><th>Status</th><th>Resume</th><th>Cover Letter</th><th>Actions</th></tr>
+    {% for a in applications %}
+    <tr>
+        <td><a href="{{ url_for('view_application', application_id=a.application_id) }}">{{ a.job_title }}</a></td>
+        <td>{{ a.company_name }}</td>
+        <td>{{ a.application_date }}</td>
+        <td><span class="badge status-{{ a.status|lower }}">{{ a.status }}</span></td>
+        <td>{{ a.resume_version or '' }}</td>
+        <td>{{ 'Yes' if a.cover_letter_sent else 'No' }}</td>
+        <td class="actions">
+            <a class="btn small" href="{{ url_for('edit_application', application_id=a.application_id) }}">Edit</a>
+            <form method="post" action="{{ url_for('delete_application', application_id=a.application_id) }}"
+                  onsubmit="return confirm('Delete this application?');">
+                <button class="btn small danger" type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7">No applications found.</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}
