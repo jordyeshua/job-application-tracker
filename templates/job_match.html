@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Job Match{% endblock %}
+{% block content %}
+<h1>Job Match</h1>
+<form method="get" class="form">
+    <label>Your Skills (comma-separated)
+        <input type="text" name="skills" placeholder="Python, SQL, Flask" value="{{ skills_text }}" required>
+    </label>
+    <button class="btn" type="submit">Find Matching Jobs</button>
+</form>
+
+{% if searched %}
+<h2>Your skills: {{ user_skills|join(', ') }}</h2>
+{% if results %}
+<p class="muted">Matching jobs, ranked by how many required skills you have:</p>
+{% for r in results %}
+<div class="match-card">
+    <div class="match-top">
+        <strong>{{ loop.index }}. {{ r.job_title }} at {{ r.company_name }}</strong>
+        <span class="match-pct {% if r.percent >= 75 %}high{% elif r.percent >= 50 %}mid{% else %}low{% endif %}">{{ r.percent }}% ({{ r.matched_count }}/{{ r.total }} skills)</span>
+    </div>
+    <div class="bar"><div class="bar-fill {% if r.percent >= 75 %}high{% elif r.percent >= 50 %}mid{% else %}low{% endif %}" style="width: {{ r.percent }}%"></div></div>
+    {% if r.matched %}<p>Have: {% for s in r.matched %}<span class="tag">{{ s }}</span>{% endfor %}</p>{% endif %}
+    {% if r.missing %}<p>Missing: {% for s in r.missing %}<span class="tag missing">{{ s }}</span>{% endfor %}</p>{% else %}<p class="muted">You have every required skill.</p>{% endif %}
+</div>
+{% endfor %}
+{% else %}
+<p>No jobs have required skills listed yet. Add skills when you <a href="{{ url_for('add_job') }}">add or edit a job</a>.</p>
+{% endif %}
+{% if skipped %}<p class="muted">{{ skipped }} job{{ 's' if skipped != 1 }} without required skills {{ 'were' if skipped != 1 else 'was' }} left out.</p>{% endif %}
+{% endif %}
+{% endblock %}

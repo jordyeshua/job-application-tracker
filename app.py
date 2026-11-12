@@ -187,6 +187,40 @@ def validate_contact(form):
     return errors, values
 
 
+def normalize_skill(skill):
+    return ' '.join(str(skill).lower().split())
+
+
+def rank_jobs(user_skills, jobs):
+    """Rank jobs by the share of their required skills the user has.
+
+    Returns (ranked, skipped) where skipped counts jobs with no required skills listed.
+    """
+    have = {normalize_skill(s) for s in user_skills}
+    ranked, skipped = [], 0
+    for job in jobs:
+        required = parse_requirements(job.get('requirements')).get('required_skills', [])
+        required = [s for s in required if str(s).strip()]
+        if not required:
+            skipped += 1
+            continue
+        matched = [s for s in required if normalize_skill(s) in have]
+        missing = [s for s in required if normalize_skill(s) not in have]
+        percent = round(len(matched) * 100 / len(required))
+        ranked.append({
+            'job_id': job['job_id'],
+            'job_title': job['job_title'],
+            'company_name': job['company_name'],
+            'percent': percent,
+            'matched_count': len(matched),
+            'total': len(required),
+            'matched': matched,
+            'missing': missing,
+        })
+    ranked.sort(key=lambda r: (-r['percent'], -r['matched_count'], r['total'], r['job_title'].lower()))
+    return ranked, skipped
+
+
 def build_requirements(skills_text, existing=None):
     data = parse_requirements(existing)
     skills = parse_skills(skills_text)
@@ -199,7 +233,21 @@ def build_requirements(skills_text, existing=None):
 
 @app.route('/')
 def dashboard():
-    return redirect(url_for('companies'))
+    totals = query('''SELECT
+            (SELECT COUNT(*) FROM companies) AS companies,
+            (SELECT COUNT(*) FROM jobs) AS jobs,
+            (SELECT COUNT(*) FROM applications) AS applications,
+            (SELECT COUNT(*) FROM contacts) AS contacts''', one=True)
+    status_counts = {s: 0 for s in STATUSES}
+    for row in query('SELECT status, COUNT(*) AS count FROM applications GROUP BY status'):
+        status_counts[row['status']] = row['count']
+    total_apps = totals['applications']
+    responded = total_apps - status_counts['Applied']
+    response_rate = round(responded * 100 / total_apps) if total_apps else 0
+    recent = query(APPLICATION_SELECT +
+                   ' ORDER BY a.application_date DESC, a.application_id DESC LIMIT 5')
+    return render_template('dashboard.html', totals=totals, status_counts=status_counts,
+                           response_rate=response_rate, recent=recent)
 
 
 # ---------- COMPANIES ----------
@@ -505,6 +553,20 @@ def delete_contact(contact_id):
     execute('DELETE FROM contacts WHERE contact_id = %s', (contact_id,))
     flash('Contact deleted.', 'success')
     return redirect(url_for('contacts'))
+
+
+# ---------- JOB MATCH ----------
+@app.route('/job-match')
+def job_match():
+    skills_text = request.args.get('skills', '').strip()
+    user_skills = parse_skills(skills_text)
+    results, skipped = [], 0
+    if user_skills:
+        rows = query('''SELECT j.job_id, j.job_title, j.requirements, c.company_name
+                        FROM jobs j JOIN companies c ON j.company_id = c.company_id''')
+        results, skipped = rank_jobs(user_skills, rows)
+    return render_template('job_match.html', skills_text=skills_text, user_skills=user_skills,
+                           results=results, skipped=skipped, searched=bool(user_skills))
 
 
 if __name__ == '__main__':

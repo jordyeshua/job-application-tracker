@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+<div class="stats">
+    <a class="stat" href="{{ url_for('companies') }}"><span class="num">{{ totals.companies }}</span><span>Companies</span></a>
+    <a class="stat" href="{{ url_for('jobs') }}"><span class="num">{{ totals.jobs }}</span><span>Jobs</span></a>
+    <a class="stat" href="{{ url_for('applications') }}"><span class="num">{{ totals.applications }}</span><span>Applications</span></a>
+    <a class="stat" href="{{ url_for('contacts') }}"><span class="num">{{ totals.contacts }}</span><span>Contacts</span></a>
+</div>
+
+<div class="two-col">
+    <div class="card">
+        <h2>Applications by Status</h2>
+        <table>
+            {% for status, count in status_counts.items() %}
+            <tr>
+                <td><span class="badge status-{{ status|lower }}">{{ status }}</span></td>
+                <td>{{ count }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <p class="muted">Response rate: <strong>{{ response_rate }}%</strong> (applications past "Applied")</p>
+    </div>
+    <div class="card">
+        <h2>Recent Applications</h2>
+        {% if recent %}
+        <table>
+            {% for a in recent %}
+            <tr>
+                <td><a href="{{ url_for('view_application', application_id=a.application_id) }}">{{ a.job_title }}</a><br><span class="muted">{{ a.company_name }}</span></td>
+                <td>{{ a.application_date }}</td>
+                <td><span class="badge status-{{ a.status|lower }}">{{ a.status }}</span></td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p>No applications yet. <a href="{{ url_for('add_application') }}">Add one</a>.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
