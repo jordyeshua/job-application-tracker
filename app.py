@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import datetime, date
 from flask import Flask, render_template, request, redirect, url_for, flash
 from database import query, execute
@@ -151,6 +152,39 @@ def interview_fields(interview_data):
         'feedback': data.get('feedback', ''),
         'next_steps': data.get('next_steps', ''),
     }
+
+
+EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+PHONE_RE = re.compile(r'^[0-9+\-().\s]{7,20}$')
+
+
+def validate_contact(form):
+    errors = []
+    name = clean(form.get('contact_name'))
+    if not name:
+        errors.append('Contact name is required.')
+    elif len(name) > 100:
+        errors.append('Contact name must be 100 characters or fewer.')
+    company_id = form.get('company_id', '').strip()
+    if not company_id.isdigit() or not query(
+            'SELECT company_id FROM companies WHERE company_id = %s', (company_id,), one=True):
+        errors.append('Please choose a company.')
+    email = clean(form.get('email'))
+    if email and not EMAIL_RE.match(email):
+        errors.append('Please enter a valid email address.')
+    phone = clean(form.get('phone'))
+    if phone and not PHONE_RE.match(phone):
+        errors.append('Phone can only contain digits, spaces, + - ( ) . and must be 7-20 characters.')
+    values = {
+        'company_id': int(company_id) if company_id.isdigit() else None,
+        'contact_name': name,
+        'title': clean(form.get('title')),
+        'email': email,
+        'phone': phone,
+        'linkedin_url': clean(form.get('linkedin_url')),
+        'notes': clean(form.get('notes')),
+    }
+    return errors, values
 
 
 def build_requirements(skills_text, existing=None):
@@ -394,6 +428,83 @@ def delete_application(application_id):
     execute('DELETE FROM applications WHERE application_id = %s', (application_id,))
     flash('Application deleted.', 'success')
     return redirect(url_for('applications'))
+
+
+# ---------- CONTACTS ----------
+CONTACT_SELECT = '''SELECT ct.*, c.company_name
+    FROM contacts ct JOIN companies c ON ct.company_id = c.company_id'''
+
+
+@app.route('/contacts')
+def contacts():
+    companies_list = query('SELECT company_id, company_name FROM companies ORDER BY company_name')
+    selected = request.args.get('company_id', '')
+    if selected.isdigit():
+        rows = query(CONTACT_SELECT + ' WHERE ct.company_id = %s ORDER BY ct.contact_name',
+                     (int(selected),))
+    else:
+        selected = ''
+        rows = query(CONTACT_SELECT + ' ORDER BY ct.contact_name')
+    return render_template('contacts.html', contacts=rows, companies=companies_list,
+                           selected_company=selected)
+
+
+@app.route('/contacts/add', methods=['GET', 'POST'])
+def add_contact():
+    companies_list = query('SELECT company_id, company_name FROM companies ORDER BY company_name')
+    if not companies_list:
+        flash('Add a company first, then you can add contacts for it.', 'error')
+        return redirect(url_for('add_company'))
+    if request.method == 'POST':
+        errors, v = validate_contact(request.form)
+        if errors:
+            for e in errors:
+                flash(e, 'error')
+            return render_template('contact_form.html', contact=request.form,
+                                   companies=companies_list, title='Add Contact')
+        execute(
+            '''INSERT INTO contacts (company_id, contact_name, title, email, phone,
+               linkedin_url, notes) VALUES (%s, %s, %s, %s, %s, %s, %s)''',
+            (v['company_id'], v['contact_name'], v['title'], v['email'], v['phone'],
+             v['linkedin_url'], v['notes'])
+        )
+        flash('Contact added.', 'success')
+        return redirect(url_for('contacts'))
+    return render_template('contact_form.html', contact={}, companies=companies_list,
+                           title='Add Contact')
+
+
+@app.route('/contacts/<int:contact_id>/edit', methods=['GET', 'POST'])
+def edit_contact(contact_id):
+    contact = query('SELECT * FROM contacts WHERE contact_id = %s', (contact_id,), one=True)
+    if not contact:
+        flash('Contact not found.', 'error')
+        return redirect(url_for('contacts'))
+    companies_list = query('SELECT company_id, company_name FROM companies ORDER BY company_name')
+    if request.method == 'POST':
+        errors, v = validate_contact(request.form)
+        if errors:
+            for e in errors:
+                flash(e, 'error')
+            return render_template('contact_form.html', contact=request.form,
+                                   companies=companies_list, title='Edit Contact')
+        execute(
+            '''UPDATE contacts SET company_id=%s, contact_name=%s, title=%s, email=%s,
+               phone=%s, linkedin_url=%s, notes=%s WHERE contact_id=%s''',
+            (v['company_id'], v['contact_name'], v['title'], v['email'], v['phone'],
+             v['linkedin_url'], v['notes'], contact_id)
+        )
+        flash('Contact updated.', 'success')
+        return redirect(url_for('contacts'))
+    return render_template('contact_form.html', contact=contact, companies=companies_list,
+                           title='Edit Contact')
+
+
+@app.route('/contacts/<int:contact_id>/delete', methods=['POST'])
+def delete_contact(contact_id):
+    execute('DELETE FROM contacts WHERE contact_id = %s', (contact_id,))
+    flash('Contact deleted.', 'success')
+    return redirect(url_for('contacts'))
 
 
 if __name__ == '__main__':

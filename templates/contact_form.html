@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<form method="post" class="form">
+    <label>Company *
+        <select name="company_id" required>
+            <option value="">-- Choose a company --</option>
+            {% for c in companies %}
+            <option value="{{ c.company_id }}" {% if contact.get('company_id')|string == c.company_id|string %}selected{% endif %}>{{ c.company_name }}</option>
+            {% endfor %}
+        </select>
+    </label>
+    <label>Contact Name *
+        <input type="text" name="contact_name" maxlength="100" value="{{ contact.get('contact_name') or '' }}" required>
+    </label>
+    <label>Title
+        <input type="text" name="title" maxlength="100" placeholder="Technical Recruiter" value="{{ contact.get('title') or '' }}">
+    </label>
+    <label>Email
+        <input type="text" name="email" maxlength="100" value="{{ contact.get('email') or '' }}">
+    </label>
+    <label>Phone
+        <input type="text" name="phone" maxlength="20" value="{{ contact.get('phone') or '' }}">
+    </label>
+    <label>LinkedIn URL
+        <input type="text" name="linkedin_url" maxlength="200" value="{{ contact.get('linkedin_url') or '' }}">
+    </label>
+    <label>Notes
+        <textarea name="notes" rows="4">{{ contact.get('notes') or '' }}</textarea>
+    </label>
+    <button class="btn" type="submit">Save</button>
+    <a class="btn secondary" href="{{ url_for('contacts') }}">Cancel</a>
+</form>
+{% endblock %}
