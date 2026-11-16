@@ -1,6 +1,9 @@
 CREATE DATABASE IF NOT EXISTS job_tracker_app;
 USE job_tracker_app;
 
+-- Safe to re-run: drops and recreates the tables (children first).
+DROP TABLE IF EXISTS contacts, applications, jobs, companies;
+
 CREATE TABLE companies (
     company_id INT PRIMARY KEY AUTO_INCREMENT,
     company_name VARCHAR(100) NOT NULL,
